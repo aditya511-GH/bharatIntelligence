@@ -24,12 +24,14 @@ export default function LoginCard() {
         const result = await signIn("credentials", {
             email,
             password,
+            role: selected,
             redirect: false,
         });
         setLoading(false);
         if (result?.error) {
             setError("Invalid credentials. Check your email and password.");
         } else {
+            // Redirect based on selected role — maps "user" role to /citizen
             router.push(selected === "official" ? "/official" : "/citizen");
         }
     }

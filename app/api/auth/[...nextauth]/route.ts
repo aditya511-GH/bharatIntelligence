@@ -1,6 +1,10 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+// Auto-detect deployment URL: use NEXTAUTH_URL if set, else use Vercel's auto-injected VERCEL_URL
+const siteUrl = process.env.NEXTAUTH_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 const handler = NextAuth({
     providers: [
         CredentialsProvider({
@@ -36,6 +40,8 @@ const handler = NextAuth({
     },
     pages: { signIn: "/" },
     secret: process.env.NEXTAUTH_SECRET,
+    ...(siteUrl && { url: siteUrl }),
 });
 
 export { handler as GET, handler as POST };
+
