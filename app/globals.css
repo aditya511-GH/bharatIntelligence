@@ -1,0 +1,125 @@
+/* Tailwind v4 — fonts are loaded via <link> in layout.tsx */
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THEME TOKENS (Tailwind v4 – replaces tailwind.config.ts)
+───────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-display: 'Satoshi', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CUSTOM KEYFRAMES
+───────────────────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes floatBot {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes shimmerMove {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BASE LAYER & DESIGN TOKENS
+───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --bg-base: #FAF9F6;
+  --bg-surface: #FFFFFF;
+
+  --text-primary: #1A1D20;
+  --text-secondary: #5F6368;
+  --text-muted: #9AA0A6;
+
+  --accent-primary: #0F52BA;
+  --accent-glow: rgba(15, 82, 186, 0.1);
+
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+  --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILITIES LAYER
+───────────────────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animate-gradient-shimmer {
+    background-size: 200% 200%;
+    animation: shimmer 8s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmerMove 10s infinite linear;
+  }
+
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E0E0E0;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BDBDBD;
+}
