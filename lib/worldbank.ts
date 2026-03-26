@@ -7,9 +7,10 @@ export interface WorldBankDataPoint {
 export async function fetchWorldBankIndicator(
     indicator: string,
     country = "IND",
-    years = 10
+    years = 14
 ): Promise<WorldBankDataPoint[]> {
-    const url = `https://api.worldbank.org/v2/country/${country}/indicator/${indicator}?format=json&mrv=${years}&per_page=${years}`;
+    // Request last 14 years with explicit date range to ensure 2024/2025 data is included
+    const url = `https://api.worldbank.org/v2/country/${country}/indicator/${indicator}?format=json&mrv=${years}&date=2012:2025&per_page=${years}`;
     const res = await fetch(url, { next: { revalidate: 3600 } }); // 1hr cache
     if (!res.ok) throw new Error(`WorldBank API error: ${res.status}`);
     const data = await res.json();
@@ -23,8 +24,8 @@ export async function fetchWorldBankIndicator(
 
 // ─── IMF World Economic Outlook ───────────────────────────────────────
 export async function fetchIMFData(indicator: string): Promise<{ label: string; value: number }[]> {
-    // IMF WEO API — India specific
-    const url = `https://www.imf.org/external/datamapper/api/v1/${indicator}?periods=2020,2021,2022,2023,2024`;
+    // IMF WEO API — India specific — includes 2025 projections
+    const url = `https://www.imf.org/external/datamapper/api/v1/${indicator}?periods=2021,2022,2023,2024,2025`;
     try {
         const res = await fetch(url, { next: { revalidate: 3600 } });
         if (!res.ok) return [];

@@ -12,6 +12,7 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { SessionProvider } from "next-auth/react";
+import { Globe, LineChart, Shield, Zap, Leaf, Landmark, Brain, Link, Target, Radio, Inbox, BarChart, User, Flag, MapPin, Mail, Lock, CheckCircle2 } from "lucide-react";
 import LoginCard from "@/components/landing/LoginCard";
 
 const Hero3D = dynamic(() => import("@/components/landing/Hero3D"), {
@@ -22,78 +23,78 @@ const Hero3D = dynamic(() => import("@/components/landing/Hero3D"), {
 
 const domains = [
   {
-    icon: "🌐",
+    icon: Globe,
     label: "Geopolitics",
     desc: "Cross-border relations & strategic positioning",
   },
   {
-    icon: "📈",
+    icon: LineChart,
     label: "Economics",
     desc: "Macroeconomic trends & trade flows",
   },
-  { icon: "🛡️", label: "Defense", desc: "Security posture & threat modeling" },
+  { icon: Shield, label: "Defense", desc: "Security posture & threat modeling" },
   {
-    icon: "⚡",
+    icon: Zap,
     label: "Technology",
     desc: "Innovation & digital infrastructure",
   },
-  { icon: "🌿", label: "Climate", desc: "Environmental risks & resilience" },
-  { icon: "🏛️", label: "Society", desc: "Human development & welfare" },
-] as const;
+  { icon: Leaf, label: "Climate", desc: "Environmental risks & resilience" },
+  { icon: Landmark, label: "Society", desc: "Human development & welfare" },
+];
 
 const features = [
   {
-    icon: "🧠",
+    icon: Brain,
     title: "Entity Ontology System",
     desc: "Every country, policy, leader, and trade route is an entity with attributes, relationships, and risk scores.",
   },
   {
-    icon: "🔗",
+    icon: Link,
     title: "Auto Event Correlation",
     desc: "AI auto-detects relationships between events across domains — no manual linking required.",
   },
   {
-    icon: "⚡",
+    icon: Zap,
     title: "Causal Reasoning Engine",
     desc: "Trace cause-effect chains: Oil ↑ → Import Cost ↑ → Inflation ↑ — clear dependency graphs.",
   },
   {
-    icon: "🎯",
+    icon: Target,
     title: "Alert Priority Engine",
     desc: "Only top-5 critical events shown. Events ranked by Impact × Risk × Urgency score.",
   },
   {
-    icon: "📡",
+    icon: Radio,
     title: "Live Intelligence Feed",
     desc: "Real-time news from global sources, filtered and analyzed for India-impact relevance.",
   },
   {
-    icon: "🗳️",
+    icon: Inbox,
     title: "Citizen Voice Pipeline",
     desc: "Citizen complaints AI-triaged, image-verified, gravity-scored and routed to officials.",
   },
-] as const;
+];
 
 const teamMembers = [
   {
     role: "Analysts",
-    icon: "📊",
+    icon: BarChart,
     title: "Geopolitical Analysts",
     desc: "Decode complex multi-domain events with AI-assisted correlation maps and causal graph overlays.",
   },
   {
     role: "Ministers",
-    icon: "🏛️",
+    icon: Landmark,
     title: "Policy Officials",
     desc: "Get a unified intelligence dashboard: live alerts, entity graphs, strategic insights — all in one command center.",
   },
   {
     role: "Citizens",
-    icon: "🧑‍💼",
+    icon: User,
     title: "Citizens",
     desc: "Browse government schemes, file verified complaints, and use your voice to connect with the system.",
   },
-] as const;
+];
 
 const faqs = [
   {
@@ -222,8 +223,8 @@ function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-          ? "bg-white/90 backdrop-blur-xl shadow-sm border-b border-black/5"
-          : "bg-transparent"
+        ? "bg-white/90 backdrop-blur-xl shadow-sm border-b border-black/5"
+        : "bg-transparent"
         }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -394,7 +395,7 @@ function Hero() {
               whileHover={{ y: -2, scale: 1.04 }}
               className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-white/10 backdrop-blur-md border border-white/20 text-white/85 hover:bg-white/20 cursor-default transition-all"
             >
-              <span className="text-base">{d.icon}</span> {d.label}
+              <d.icon className="w-5 h-5 text-white/80" /> {d.label}
             </motion.div>
           ))}
         </motion.div>
@@ -437,22 +438,22 @@ function Hero() {
 function FeatureStrip() {
   const strips = [
     {
-      icon: "🧠",
+      icon: Brain,
       label: "Ontology Engine",
       desc: "Entity-level intelligence graph.",
     },
     {
-      icon: "🔗",
+      icon: Link,
       label: "Auto Correlation",
       desc: "Cross-domain event linking.",
     },
     {
-      icon: "⚡",
+      icon: Zap,
       label: "Causal Chains",
       desc: "Traceable cause-effect paths.",
     },
     {
-      icon: "🗳️",
+      icon: Inbox,
       label: "Citizen Pipeline",
       desc: "AI-triaged civic complaints.",
     },
@@ -478,8 +479,8 @@ function FeatureStrip() {
               whileHover={{ y: -4 }}
               className="flex flex-col items-center text-center p-8 rounded-2xl border border-slate-100 hover:border-blue-100 hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl mb-4 shadow-inner">
-                {s.icon}
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-4 shadow-inner">
+                <s.icon className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-display font-bold text-slate-900 mb-1 text-base">
                 {s.label}
@@ -511,7 +512,9 @@ function AboutSection() {
             <Hero3D />
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-white text-center">
-            <div className="text-7xl mb-6 drop-shadow-2xl">🇮🇳</div>
+            <div className="mb-6 drop-shadow-2xl">
+              <Flag className="w-16 h-16 text-blue-300 mx-auto" strokeWidth={1.5} />
+            </div>
             <div className="font-display font-black text-3xl mb-2">
               India First
             </div>
@@ -611,8 +614,8 @@ function DomainsSection() {
               }}
               className="group p-8 rounded-3xl bg-white border border-slate-100 shadow-sm transition-all duration-300 cursor-default"
             >
-              <div className="text-4xl mb-5 w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-50 transition-colors">
-                {d.icon}
+              <div className="mb-5 w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-blue-50 transition-colors">
+                <d.icon className="w-8 h-8 text-slate-700 group-hover:text-blue-600 transition-colors" />
               </div>
               <div className="font-display font-bold text-xl mb-2 text-slate-900">
                 {d.label}
@@ -665,7 +668,9 @@ function CapabilitiesSection() {
               {/* Subtle gradient glow on hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-blue-50/80 to-transparent rounded-3xl pointer-events-none" />
               <div className="relative z-10">
-                <div className="text-3xl mb-4">{f.icon}</div>
+                <div className="mb-4">
+                  <f.icon className="w-8 h-8 text-blue-600" />
+                </div>
                 <div className="font-display font-bold text-lg mb-3 text-slate-900">
                   {f.title}
                 </div>
@@ -748,7 +753,9 @@ function AudienceSection() {
               {/* Top color strip */}
               <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600" />
               <div className="p-8">
-                <div className="text-4xl mb-5">{m.icon}</div>
+                <div className="mb-5">
+                  <m.icon className="w-10 h-10 text-slate-700" />
+                </div>
                 <h3 className="font-display font-bold text-xl mb-3 text-slate-900">
                   {m.title}
                 </h3>
@@ -971,7 +978,7 @@ function ContactSection() {
           >
             {sent ? (
               <div className="p-10 rounded-3xl bg-white border border-slate-100 shadow-sm text-center">
-                <div className="text-5xl mb-4">✅</div>
+                <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" strokeWidth={1.5} />
                 <h3 className="font-display font-bold text-xl text-slate-900 mb-2">
                   Request Received
                 </h3>
@@ -1061,24 +1068,24 @@ function ContactSection() {
           >
             {[
               {
-                icon: "📍",
+                icon: MapPin,
                 title: "Headquarters",
                 body: "National Data Infrastructure Council\nNew Delhi, India 110001",
               },
               {
-                icon: "📧",
+                icon: Mail,
                 title: "Email",
                 body: "intelligence@bharatgov.example.in\nSupport: help@bharatgov.example.in",
               },
               {
-                icon: "🔒",
+                icon: Lock,
                 title: "Security & Compliance",
                 body: "Platform is classified infrastructure. All access is audited under the IT Act 2000 and Data Protection Act 2023.",
               },
             ].map((info) => (
               <div key={info.title} className="flex gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-lg flex-shrink-0">
-                  {info.icon}
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                  <info.icon className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <div className="font-bold text-slate-900 text-sm mb-1">

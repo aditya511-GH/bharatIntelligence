@@ -1,28 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeComplaint } from "@/lib/gemini";
 import { sendComplaintEmail } from "@/lib/mailer";
+import {
+    loadComplaints,
+    addComplaint,
+    updateComplaintStatus,
+    nextComplaintId,
+} from "@/lib/store";
+import type { ComplaintRecord } from "@/lib/store";
 
-// In-memory store for demo; use DB in production
-const complaintsStore: {
-    id: string;
-    department: string;
-    gravity: string;
-    problemType: string;
-    status: "Filed" | "Under Review" | "Resolved";
-    timestamp: string;
-}[] = [];
+// Re-export the type for components that import from this route
+export type { ComplaintRecord };
 
-// Strike counter per "user" (identified by session/email in production)
+// Helper to compute priority from gravity
+function gravityToPriority(gravity: string): "High" | "Medium" | "Low" {
+    if (gravity === "Critical" || gravity === "High") return "High";
+    if (gravity === "Medium") return "Medium";
+    return "Low";
+}
+
+// Strike counter per user email (in-memory is fine — resets on restart)
 const strikeCounter: Record<string, number> = {};
 
 export async function POST(req: NextRequest) {
     try {
-        const formData = await req.formData();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const formData = await req.formData() as any;
         const complaintText = String(formData.get("text") ?? "");
         const department = String(formData.get("department") ?? "");
-        const userName = String(formData.get("userName") ?? "Anonymous");
-        const userEmail = String(formData.get("userEmail") ?? "citizen@india.in");
-        // FormData.get() returns FormDataEntryValue (string | File) | null
+        const title = String(formData.get("title") ?? complaintText.slice(0, 60));
+        const location = String(formData.get("location") ?? "India");
+        const lat = parseFloat(String(formData.get("lat") ?? "20.5937"));
+        const lng = parseFloat(String(formData.get("lng") ?? "78.9629"));
+        const userName = String(formData.get("userName") ?? "Citizen");
+        const userEmail = String(formData.get("userEmail") ?? "");
+        const originalLanguage = String(formData.get("originalLanguage") ?? "");
+        const originalText = String(formData.get("originalText") ?? "");
+
         const imageEntry = formData.get("image");
         const imageFile: File | null = imageEntry instanceof File ? imageEntry : null;
 
@@ -46,47 +60,60 @@ export async function POST(req: NextRequest) {
         // AI analysis
         const analysis = await analyzeComplaint(complaintText, department, imageBase64);
 
-        // Image verification strike logic
+        // Image verification strike logic (only if image provided AND clearly fake)
         const strikeKey = userEmail;
-        if (imageBase64 && (analysis.isImageAIGenerated || !analysis.imageMatchesText)) {
+        if (imageBase64 && analysis.isImageAIGenerated) {
             strikeCounter[strikeKey] = (strikeCounter[strikeKey] ?? 0) + 1;
             if (strikeCounter[strikeKey] >= 3) {
                 return NextResponse.json({
                     error: "BANNED",
-                    message: "Your account has been flagged for repeatedly submitting fake or misleading images.",
+                    message: "Your account has been flagged for repeatedly submitting AI-generated images.",
                 }, { status: 403 });
             }
             return NextResponse.json({
                 warning: true,
                 strikes: strikeCounter[strikeKey],
-                message: analysis.isImageAIGenerated
-                    ? "⚠️ This image appears to be AI-generated or not authentic. Strike recorded."
-                    : "⚠️ The image does not match your complaint. Please attach a relevant image.",
+                message: "⚠️ This image appears to be AI-generated or synthetic. Strike recorded.",
                 analysis: analysis.imageAnalysis,
             }, { status: 422 });
         }
 
-        // Send email to officials
-        await sendComplaintEmail({
-            complainantName: userName,
-            department,
-            originalText: complaintText,
-            refinedText: analysis.refinedText,
-            gravity: analysis.gravity,
-            problemType: analysis.problemType,
-            imageAttachment,
-        });
+        // Send email to officials (best-effort)
+        try {
+            await sendComplaintEmail({
+                complainantName: userName,
+                department,
+                originalText: complaintText,
+                refinedText: analysis.refinedText,
+                gravity: analysis.gravity,
+                problemType: analysis.problemType,
+                imageAttachment,
+            });
+        } catch (emailErr) {
+            console.warn("Email send failed (non-fatal):", emailErr);
+        }
 
-        // Store complaint for stats
-        const newComplaint = {
-            id: Math.random().toString(36).slice(2),
+        // Store complaint in Supabase
+        const complaintId = await nextComplaintId();
+        const newComplaint: ComplaintRecord = {
+            id: complaintId,
+            title,
             department,
             gravity: analysis.gravity,
+            priority: gravityToPriority(analysis.gravity),
             problemType: analysis.problemType,
-            status: "Filed" as const,
+            status: "Filed",
             timestamp: new Date().toISOString(),
+            location,
+            lat: isNaN(lat) ? 20.5937 : lat,
+            lng: isNaN(lng) ? 78.9629 : lng,
+            userName,
+            userEmail,
+            description: complaintText,
+            originalLanguage: originalLanguage || undefined,
+            originalText: originalText || undefined,
         };
-        complaintsStore.push(newComplaint);
+        await addComplaint(newComplaint);
 
         return NextResponse.json({
             success: true,
@@ -102,21 +129,45 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-    // Return complaint statistics
+    const complaints = await loadComplaints();
     const stats = {
-        total: complaintsStore.length,
-        filed: complaintsStore.filter((c) => c.status === "Filed").length,
-        underReview: complaintsStore.filter((c) => c.status === "Under Review").length,
-        resolved: complaintsStore.filter((c) => c.status === "Resolved").length,
-        byDepartment: complaintsStore.reduce((acc, c) => {
+        total: complaints.length,
+        filed: complaints.filter((c) => c.status === "Filed").length,
+        underReview: complaints.filter((c) => c.status === "Under Review").length,
+        resolved: complaints.filter((c) => c.status === "Resolved").length,
+        byDepartment: complaints.reduce((acc, c) => {
             acc[c.department] = (acc[c.department] ?? 0) + 1;
             return acc;
         }, {} as Record<string, number>),
-        byGravity: complaintsStore.reduce((acc, c) => {
+        byGravity: complaints.reduce((acc, c) => {
             acc[c.gravity] = (acc[c.gravity] ?? 0) + 1;
             return acc;
         }, {} as Record<string, number>),
-        recent: complaintsStore.slice(-10).reverse(),
+        recent: [...complaints].slice(0, 10),
+        all: complaints,
+        locations: complaints.map((c) => ({
+            id: c.id,
+            title: c.title,
+            lat: c.lat,
+            lng: c.lng,
+            location: c.location,
+            priority: c.priority,
+            department: c.department,
+            status: c.status,
+            timestamp: c.timestamp,
+        })),
     };
     return NextResponse.json(stats);
+}
+
+// PATCH endpoint for updating complaint status
+export async function PATCH(req: NextRequest) {
+    try {
+        const { id, status } = await req.json();
+        const updated = await updateComplaintStatus(id, status);
+        if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
+        return NextResponse.json({ success: true, complaint: updated });
+    } catch {
+        return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    }
 }

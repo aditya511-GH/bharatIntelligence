@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { DomainKey } from "@/lib/utils";
+import { Microscope, Trophy } from "lucide-react";
 
 // ─── Heatmap Breakdown Definitions ───────────────────────────────────────────
 export const HEATMAP_BREAKDOWN: Record<string, {
@@ -65,6 +66,99 @@ export const HEATMAP_BREAKDOWN: Record<string, {
             { name: "Naval Contest", weight: 25, unit: "index", value: 55, valueLabel: "IOR patrol frequency", source: "IISS" },
         ],
     },
+    // ── Economics domain breakdowns ───────────────────────────────────────────
+    "Capital Markets": {
+        formula: "SensexVol×0.30 + FIIFlow×0.30 + BondYield×0.20 + CreditRating×0.20",
+        globalRank: "5 of G20", trendDelta: 3, trendDir: "up",
+        components: [
+            { name: "BSE Sensex Volatility", weight: 30, unit: "VIX", value: 18, valueLabel: "18.2 (elevated)", source: "NSE" },
+            { name: "FII Net Flow", weight: 30, unit: "$B/mo", value: -2.8, valueLabel: "−$2.8B outflows (Mar 26)", source: "SEBI" },
+            { name: "10Y Bond Yield", weight: 20, unit: "%", value: 7.1, valueLabel: "7.1% (stress zone)", source: "RBI" },
+            { name: "Sovereign Credit Rating", weight: 20, unit: "score", value: 62, valueLabel: "Baa3/BBB− watch", source: "Moody's" },
+        ],
+    },
+    "Fiscal Deficit": {
+        formula: "GovtExp×0.35 + TaxRev×0.30 + CapexRatio×0.20 + SubsidyLoad×0.15",
+        globalRank: "7 of G20", trendDelta: 2, trendDir: "up",
+        components: [
+            { name: "Govt Expenditure % GDP", weight: 35, unit: "%", value: 15.3, valueLabel: "15.3% GDP — ↑ from 14.8", source: "MoF" },
+            { name: "Tax Revenue % GDP", weight: 30, unit: "%", value: 10.2, valueLabel: "GST + Direct tax, stable", source: "CBDT" },
+            { name: "Capex Ratio", weight: 20, unit: "%", value: 22, valueLabel: "22% of total spend (good)", source: "MoF" },
+            { name: "Subsidy Load", weight: 15, unit: "$B", value: 48, valueLabel: "$48B food+fuel (FY26)", source: "MoF" },
+        ],
+    },
+    "Current Account": {
+        formula: "TradeBalance×0.40 + ServicesExp×0.25 + Remittances×0.20 + FDINet×0.15",
+        globalRank: "6 of G20", trendDelta: 4, trendDir: "up",
+        components: [
+            { name: "Goods Trade Balance", weight: 40, unit: "$B", value: -245, valueLabel: "−$245B annual (FY26)", source: "DPIIT" },
+            { name: "Services Exports", weight: 25, unit: "$B", value: 338, valueLabel: "$338B IT/BPO surplus", source: "RBI" },
+            { name: "Remittance Inflow", weight: 20, unit: "$B", value: 120, valueLabel: "$120B (world's largest)", source: "World Bank" },
+            { name: "Net FDI Inflow", weight: 15, unit: "$B", value: 44, valueLabel: "$44B FY26 provisional", source: "RBI" },
+        ],
+    },
+    // ── Technology domain breakdowns ──────────────────────────────────────────
+    "Semiconductor Risk": {
+        formula: "ImportDep×0.40 + FabCap×0.25 + USExposure×0.20 + InventoryBuffer×0.15",
+        globalRank: "8 of G20", trendDelta: 6, trendDir: "up",
+        components: [
+            { name: "Import Dependency", weight: 40, unit: "%", value: 78, valueLabel: "78% from Taiwan+China", source: "DPIIT" },
+            { name: "Domestic Fab Capacity", weight: 25, unit: "K wafers/mo", value: 0, valueLabel: "0 (Tata fab Q3 2026)", source: "MeitY" },
+            { name: "US CHIPS Act Exposure", weight: 20, unit: "index", value: 62, valueLabel: "Secondary sanction risk: 62", source: "USITC" },
+            { name: "Inventory Buffer", weight: 15, unit: "weeks", value: 6, valueLabel: "6 weeks critical stock", source: "ICEA" },
+        ],
+    },
+    "AI Readiness": {
+        formula: "DataInfra×0.30 + TalentPool×0.30 + PolicyFrm×0.20 + ComputeAccess×0.20",
+        globalRank: "3 of G20", trendDelta: 5, trendDir: "up",
+        components: [
+            { name: "Data Infrastructure", weight: 30, unit: "score", value: 61, valueLabel: "UPI/DPDP Act score: 61", source: "MeitY" },
+            { name: "AI Talent Pool", weight: 30, unit: "K engineers", value: 420, valueLabel: "420K AI/ML engineers", source: "NASSCOM" },
+            { name: "Policy Framework", weight: 20, unit: "score", value: 55, valueLabel: "DPDP 2023 + AI policy draft", source: "NITI" },
+            { name: "Compute Access (GPU)", weight: 20, unit: "index", value: 42, valueLabel: "National AI compute: limited", source: "MeitY" },
+        ],
+    },
+    "Cyber Infrastructure": {
+        formula: "CERTResponse×0.30 + CriticalInfra×0.30 + APTExposure×0.25 + CyberBudget×0.15",
+        globalRank: "5 of G20", trendDelta: 4, trendDir: "up",
+        components: [
+            { name: "CERT-In Response Score", weight: 30, unit: "score", value: 68, valueLabel: "68/100 — upgraded 2025", source: "CERT-In" },
+            { name: "Critical Infra Hardening", weight: 30, unit: "%", value: 52, valueLabel: "52% grid hardened", source: "MHA" },
+            { name: "APT Attack Exposure", weight: 25, unit: "incidents/yr", value: 2400, valueLabel: "2,400+ state-sponsored", source: "CERT-In" },
+            { name: "Cyber Defense Budget", weight: 15, unit: "$M", value: 480, valueLabel: "$480M (2.1× FY24)", source: "MoF" },
+        ],
+    },
+    // ── Society domain breakdowns ─────────────────────────────────────────────
+    "Social Inequality": {
+        formula: "GiniCoeff×0.35 + WealthConc×0.30 + RegionalDisp×0.20 + CasteGap×0.15",
+        globalRank: "9 of G20", trendDelta: 2, trendDir: "up",
+        components: [
+            { name: "Gini Coefficient", weight: 35, unit: "index", value: 0.51, valueLabel: "0.51 — rising since 2020", source: "World Bank" },
+            { name: "Wealth Concentration", weight: 30, unit: "%", value: 58, valueLabel: "Top 1% holds 58% wealth", source: "WID" },
+            { name: "Regional Disparity Index", weight: 20, unit: "score", value: 72, valueLabel: "Bihar/UP vs Kerala gap: 72", source: "NITI" },
+            { name: "Social Mobility Score", weight: 15, unit: "score", value: 48, valueLabel: "48/100 — low inter-gen", source: "ILO" },
+        ],
+    },
+    "Healthcare Access": {
+        formula: "PM_JAY×0.30 + DoctorRatio×0.25 + HospBeds×0.25 + HealthSpend×0.20",
+        globalRank: "8 of G20", trendDelta: 3, trendDir: "down",
+        components: [
+            { name: "PM-JAY Coverage", weight: 30, unit: "M people", value: 600, valueLabel: "600M enrolled (FY26)", source: "NHA" },
+            { name: "Doctor-to-Patient Ratio", weight: 25, unit: "per 1000", value: 0.7, valueLabel: "0.7 (WHO req: 1.0)", source: "NMC" },
+            { name: "Hospital Beds per 1000", weight: 25, unit: "beds", value: 0.5, valueLabel: "0.5 beds — critical gap", source: "MoHFW" },
+            { name: "Public Health Spend % GDP", weight: 20, unit: "%", value: 2.1, valueLabel: "2.1% GDP (target: 2.5%)", source: "MoHFW" },
+        ],
+    },
+    "Youth Employment": {
+        formula: "UnempRate×0.35 + SkillMatch×0.25 + InformalShare×0.25 + JobCreation×0.15",
+        globalRank: "7 of G20", trendDelta: 3, trendDir: "up",
+        components: [
+            { name: "Youth Unemployment (15–24)", weight: 35, unit: "%", value: 23, valueLabel: "23% — structural concern", source: "CMIE" },
+            { name: "Skill-Job Mismatch", weight: 25, unit: "%", value: 68, valueLabel: "68% graduates underqualified", source: "NSSO" },
+            { name: "Informal Economy Share", weight: 25, unit: "%", value: 82, valueLabel: "82% workforce informal", source: "ILO" },
+            { name: "Formal Job Creation/yr", weight: 15, unit: "M jobs", value: 8, valueLabel: "8M formal jobs FY26", source: "NCS" },
+        ],
+    },
 };
 
 // ─── Heatmap Breakdown Panel ──────────────────────────────────────────────────
@@ -79,7 +173,7 @@ export function HeatmapBreakdownPanel({ label, score, onClose }: { label: string
     return (
         <div className="rounded-xl border p-4 mt-2" style={{ background: "#F8FAFC", border: "1px solid #BFDBFE", fontSize: 11 }}>
             <div className="flex items-center justify-between mb-2">
-                <div className="font-bold text-xs" style={{ color: "#1E293B" }}>🔬 Score Breakdown: {label}</div>
+                <div className="font-bold text-xs flex items-center gap-1.5" style={{ color: "#1E293B" }}><Microscope style={{ width: 12, height: 12, display: "inline" }} /> Score Breakdown: {label}</div>
                 <button onClick={onClose} className="text-gray-400 text-xs hover:text-gray-700">✕</button>
             </div>
             <div className="mb-2 px-2 py-1 rounded text-xs font-mono" style={{ background: "#EFF6FF", color: "#1E40AF", fontSize: 9 }}>{breakdown.formula}</div>
@@ -87,7 +181,7 @@ export function HeatmapBreakdownPanel({ label, score, onClose }: { label: string
                 <span style={{ color: breakdown.trendDir === "up" ? "#EF4444" : "#22C55E" }}>
                     {breakdown.trendDir === "up" ? "↑" : "↓"} +{breakdown.trendDelta} last 30d
                 </span>
-                <span style={{ color: "#64748B" }}>🏆 Rank: <strong>{breakdown.globalRank}</strong></span>
+                <span style={{ color: "#64748B" }}><Trophy style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 2 }} />Rank: <strong>{breakdown.globalRank}</strong></span>
                 <span style={{ color: "#94A3B8" }}>Updated: {now}</span>
             </div>
             <div className="space-y-2">

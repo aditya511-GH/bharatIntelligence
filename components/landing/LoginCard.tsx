@@ -1,45 +1,55 @@
 "use client";
+
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase-client";
+import { Landmark, UserCircle, Zap }  from "lucide-react";
 
 export default function LoginCard() {
     const [selected, setSelected] = useState<"official" | "user" | null>(null);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const router = useRouter();
 
-    const CREDENTIALS = {
-        official: { email: "official@gov.in", password: "official123", hint: "official@gov.in / official123" },
-        user: { email: "citizen@india.in", password: "citizen123", hint: "citizen@india.in / citizen123" },
-    };
-
-    async function handleLogin(e: React.FormEvent) {
-        e.preventDefault();
+    // ─── Google OAuth via Supabase ──────────────────────────────────────────
+    async function handleGoogleLogin() {
+        if (!selected) {
+            setError("Please select Official or Citizen before proceeding.");
+            return;
+        }
         setLoading(true);
         setError("");
-        const result = await signIn("credentials", {
-            email,
-            password,
-            role: selected,
-            redirect: false,
+
+        const redirectTo =
+            typeof window !== "undefined"
+                ? `${window.location.origin}/auth/callback?role=${selected}`
+                : `http://localhost:3000/auth/callback?role=${selected}`;
+
+        const { error: authError } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo,
+                queryParams: {
+                    access_type: "offline",
+                    prompt: "consent",
+                },
+            },
         });
-        setLoading(false);
-        if (result?.error) {
-            setError("Invalid credentials. Check your email and password.");
-        } else {
-            // Redirect based on selected role — maps "user" role to /citizen
-            router.push(selected === "official" ? "/official" : "/citizen");
+
+        if (authError) {
+            setError(authError.message);
+            setLoading(false);
         }
+        // On success: browser redirects to Google → then to /auth/callback
+    }
+
+    // ─── Demo bypass (for local testing) ─────────────────────────────────
+    function handleDemoLogin(role: "official" | "user") {
+        setLoading(true);
+        window.location.href = role === "official" ? "/official" : "/citizen";
     }
 
     function selectRole(role: "official" | "user") {
         setSelected(role);
-        setEmail(CREDENTIALS[role].email);
-        setPassword(CREDENTIALS[role].password);
         setError("");
     }
 
@@ -67,7 +77,7 @@ export default function LoginCard() {
                     Secure Access Portal
                 </h2>
                 <p className="text-sm mt-1" style={{ color: "#90CAF9" }}>
-                    Select your access level to continue
+                    Select your access level and sign in with Google
                 </p>
             </div>
 
@@ -86,7 +96,7 @@ export default function LoginCard() {
                         boxShadow: selected === "official" ? "0 0 20px rgba(13,71,161,0.4)" : "none",
                     }}
                 >
-                    🏛️ Official
+                    <Landmark className="inline-block w-4 h-4 mr-1.5 -mt-0.5" /> Official
                 </motion.button>
                 <motion.button
                     whileTap={{ scale: 0.97 }}
@@ -101,78 +111,116 @@ export default function LoginCard() {
                         boxShadow: selected === "user" ? "0 0 20px rgba(0,137,123,0.4)" : "none",
                     }}
                 >
-                    🧑‍💼 Citizen
+                    <UserCircle className="inline-block w-4 h-4 mr-1.5 -mt-0.5" /> Citizen
                 </motion.button>
             </div>
 
-            {/* Credentials hint */}
-            {selected && (
-                <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="mb-4 px-3 py-2 rounded-lg text-xs font-mono"
-                    style={{ background: "rgba(66,165,245,0.08)", color: "#4DB6AC", border: "1px solid rgba(77,182,172,0.2)" }}
-                >
-                    Demo: {CREDENTIALS[selected].hint}
-                </motion.div>
-            )}
-
-            {/* Form */}
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                <div>
-                    <label className="text-xs mb-1 block" style={{ color: "#90CAF9" }}>Email Address</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        required
-                        className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-all"
-                        style={{
-                            background: "rgba(13,31,60,0.8)",
-                            border: "1px solid rgba(66,165,245,0.3)",
-                            color: "#E0F7FA",
-                        }}
-                    />
-                </div>
-                <div>
-                    <label className="text-xs mb-1 block" style={{ color: "#90CAF9" }}>Password</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        required
-                        className="w-full px-4 py-3 rounded-lg text-sm outline-none"
-                        style={{
-                            background: "rgba(13,31,60,0.8)",
-                            border: "1px solid rgba(66,165,245,0.3)",
-                            color: "#E0F7FA",
-                        }}
-                    />
-                </div>
-
-                {error && (
-                    <div className="text-xs px-3 py-2 rounded-lg badge-critical">{error}</div>
-                )}
+            {/* Google Sign In */}
+            <div className="flex flex-col gap-3">
+                <AnimatePresence>
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="text-xs px-3 py-2 rounded-lg"
+                            style={{ background: "rgba(239,83,80,0.1)", color: "#EF5350", border: "1px solid rgba(239,83,80,0.3)" }}
+                        >
+                            {error}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <motion.button
-                    type="submit"
-                    disabled={loading || !selected}
+                    onClick={handleGoogleLogin}
+                    disabled={loading}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-lg font-semibold text-sm transition-all"
+                    className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-3 transition-all"
                     style={{
-                        background: loading || !selected
-                            ? "rgba(13,71,161,0.3)"
-                            : "linear-gradient(135deg, #0D47A1, #00695C)",
-                        color: loading || !selected ? "#546E7A" : "#E0F7FA",
-                        cursor: loading || !selected ? "not-allowed" : "pointer",
-                        boxShadow: !loading && selected ? "0 4px 24px rgba(13,71,161,0.4)" : "none",
+                        background: loading
+                            ? "rgba(255,255,255,0.05)"
+                            : "rgba(255,255,255,0.1)",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        color: "#E0F7FA",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        backdropFilter: "blur(8px)",
+                        boxShadow: loading ? "none" : "0 4px 24px rgba(0,0,0,0.2)",
                     }}
                 >
-                    {loading ? "Authenticating..." : "Access Platform →"}
+                    {loading ? (
+                        <>
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Connecting to Google...
+                        </>
+                    ) : (
+                        <>
+                            {/* Google G logo */}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            Sign in with Google
+                        </>
+                    )}
                 </motion.button>
-            </form>
+
+                {!selected && (
+                    <p className="text-center text-[11px]" style={{ color: "rgba(144,202,249,0.5)" }}>
+                        Select a role above to continue
+                    </p>
+                )}
+            </div>
+
+            {/* Demo / Testing Bypass Area */}
+            <div className="mt-6 pt-5 border-t" style={{ borderColor: "rgba(77,182,172,0.12)" }}>
+                <div
+                    className="rounded-xl p-4 space-y-3"
+                    style={{
+                        background: "rgba(234,179,8,0.05)",
+                        border: "1px solid rgba(234,179,8,0.2)",
+                    }}
+                >
+                    <div className="flex items-center gap-2">
+                        <span
+                            className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
+                            style={{ background: "rgba(234,179,8,0.15)", color: "#FCD34D", border: "1px solid rgba(234,179,8,0.25)" }}
+                        >
+                            <Zap className="inline-block w-3 h-3 mr-1 -mt-0.5" /> DEMO ACCESS
+                        </span>
+                        <span className="text-[10px] font-mono" style={{ color: "rgba(148,163,184,0.5)" }}>
+                            Bypasses credential verification
+                        </span>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => handleDemoLogin("official")}
+                            className="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all outline-none"
+                            style={{
+                                background: "rgba(59,130,246,0.12)",
+                                border: "1px solid rgba(59,130,246,0.35)",
+                                color: "#93C5FD",
+                            }}
+                        >
+                            <Landmark className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5" /> Official Dashboard
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleDemoLogin("user")}
+                            className="flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all outline-none"
+                            style={{
+                                background: "rgba(20,184,166,0.12)",
+                                border: "1px solid rgba(20,184,166,0.35)",
+                                color: "#5EEAD4",
+                            }}
+                        >
+                            <UserCircle className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5" /> Citizen Portal
+                        </button>
+                    </div>
+                </div>
+            </div>
         </motion.div>
     );
 }
